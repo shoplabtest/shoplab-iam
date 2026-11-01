@@ -95,3 +95,20 @@ test('password reset: token works once and revokes sessions', async () => {
 test('reset request does not reveal unknown emails', async () => {
   assert.equal((await call('/auth/password-reset/request', 'POST', { email: 'ghost@shoplab.test' })).status, 202);
 });
+
+test('profile edit: self or admin can change fullName, others cannot, blank is rejected', async () => {
+  await register('c@shoplab.test');
+  await register('d@shoplab.test');
+  const c = await login('c@shoplab.test');
+  const d = await login('d@shoplab.test');
+  const cId = verifyAccess(cfg, c.accessToken).sub;
+  const patch = (id: string, token: string, body: unknown) => call(`/users/${id}`, 'PATCH', body, token);
+
+  const ok = await patch(cId, c.accessToken, { fullName: '  Casey Jones ' });
+  assert.equal(ok.status, 200);
+  assert.equal(((await ok.json()) as { fullName: string }).fullName, 'Casey Jones');
+  assert.equal((await patch(cId, d.accessToken, { fullName: 'Hacker' })).status, 403);
+  assert.equal((await patch(cId, c.accessToken, { fullName: '   ' })).status, 400);
+  assert.equal((await patch('00000000-0000-0000-0000-000000000000', (await login('root@shoplab.test')).accessToken, { fullName: 'X' })).status, 404);
+  assert.equal((await patch(cId, (await login('root@shoplab.test')).accessToken, { fullName: 'By Admin' })).status, 200);
+});

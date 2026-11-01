@@ -23,6 +23,7 @@ export interface Store {
   findByEmail(email: string): Promise<UserRow | null>;
   findById(id: string): Promise<UserRow | null>;
   setRole(id: string, role: Role): Promise<UserRow | null>;
+  setFullName(id: string, fullName: string): Promise<UserRow | null>;
   setPassword(id: string, passwordHash: string): Promise<void>;
   saveRefresh(userId: string, tokenHash: string, expiresAt: Date): Promise<void>;
   getRefresh(tokenHash: string): Promise<TokenRow | null>;
@@ -52,6 +53,9 @@ export class PgStore implements Store {
   }
   async setRole(id: string, role: Role) {
     return (await this.pool.query<UserRow>('UPDATE users SET role = $2 WHERE id = $1 RETURNING *', [id, role])).rows[0] ?? null;
+  }
+  async setFullName(id: string, fullName: string) {
+    return (await this.pool.query<UserRow>('UPDATE users SET full_name = $2 WHERE id = $1 RETURNING *', [id, fullName])).rows[0] ?? null;
   }
   async setPassword(id: string, passwordHash: string) {
     await this.pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [id, passwordHash]);
@@ -105,6 +109,12 @@ export class MemoryStore implements Store {
     const u = this.users.find((x) => x.id === id);
     if (!u) return null;
     u.role = role;
+    return { ...u };
+  }
+  async setFullName(id: string, fullName: string) {
+    const u = this.users.find((x) => x.id === id);
+    if (!u) return null;
+    u.full_name = fullName;
     return { ...u };
   }
   async setPassword(id: string, passwordHash: string) {

@@ -110,6 +110,17 @@ export function createApp({ cfg, store, events, bcryptRounds = 10 }: Deps) {
     res.json(publicUser(user));
   });
 
+  /** Profile edit: the user themself or an admin may change the display name. Email is not editable. */
+  app.patch('/users/:id', requireAuth, async (req, res) => {
+    const { sub, role } = req.claims!;
+    if (sub !== req.params.id && role !== 'admin') return void res.status(403).json({ error: 'forbidden' });
+    const fullName = req.body?.fullName;
+    if (typeof fullName !== 'string' || !fullName.trim()) return void res.status(400).json({ error: 'invalid_request' });
+    const user = await store.setFullName(req.params.id, fullName.trim());
+    if (!user) return void res.status(404).json({ error: 'not_found' });
+    res.json(publicUser(user));
+  });
+
   app.put('/users/:id/role', requireAuth, async (req, res) => {
     if (req.claims!.role !== 'admin') return void res.status(403).json({ error: 'forbidden' });
     const role = req.body?.role;

@@ -9,6 +9,7 @@ Users, sessions, roles and tokens. Express + Postgres.
 | `POST /auth/logout` | revoke one refresh token, or all with `all: true` |
 | `POST /auth/password-reset/request`, `/confirm` | one-time token, revokes sessions |
 | `GET /users/:id` | self, or staff/admin |
+| `PATCH /users/:id` | self or admin; changes `fullName` only |
 | `PUT /users/:id/role` | admin only; publishes `user.role_changed` |
 
 Env: `DATABASE_URL`, `JWT_SECRET`, `RABBITMQ_URL` (optional), `PORT`, `ACCESS_TOKEN_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`.
