@@ -112,3 +112,9 @@ test('profile edit: self or admin can change fullName, others cannot, blank is r
   assert.equal((await patch('00000000-0000-0000-0000-000000000000', (await login('root@shoplab.test')).accessToken, { fullName: 'X' })).status, 404);
   assert.equal((await patch(cId, (await login('root@shoplab.test')).accessToken, { fullName: 'By Admin' })).status, 200);
 });
+
+test('user responses include createdAt', async () => {
+  const r = await register('created@shoplab.test');
+  const body = (await r.json()) as { createdAt: string };
+  assert.ok(!Number.isNaN(Date.parse(body.createdAt)));
+});
