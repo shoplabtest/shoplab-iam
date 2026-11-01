@@ -39,7 +39,7 @@ export function createApp({ cfg, store, events, bcryptRounds = 10 }: Deps) {
   const issuePair = async (u: UserRow) => {
     const refreshToken = newOpaqueToken();
     await store.saveRefresh(u.id, hashToken(refreshToken), new Date(Date.now() + cfg.refreshTtlSeconds * 1000));
-    return { accessToken: signAccess(cfg, u), refreshToken, expiresIn: cfg.accessTtlSeconds };
+    return { token: signAccess(cfg, u), refreshToken, expiresIn: cfg.accessTtlSeconds };
   };
 
   app.get('/healthz', (_req, res) => void res.json({ ok: true }));
