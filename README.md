@@ -12,7 +12,7 @@ Users, sessions, roles and tokens. Express + Postgres.
 | `PATCH /users/:id` | self or admin; changes `fullName` only |
 | `PUT /users/:id/role` | admin only; publishes `user.role_changed` |
 
-Env: `DATABASE_URL`, `JWT_SECRET`, `RABBITMQ_URL` (optional), `PORT`, `ACCESS_TOKEN_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`.
+Env: `DATABASE_URL`, `JWT_SIGNING_KEY`, `RABBITMQ_URL` (optional), `PORT`, `ACCESS_TOKEN_TTL_SECONDS`, `REFRESH_TOKEN_TTL_SECONDS`.
 
 `npm test` runs against an in-memory store; set `TEST_DATABASE_URL` to also run the migration test on an empty Postgres.
 `npm run seed` creates the same 50 users every time (password `password123`).

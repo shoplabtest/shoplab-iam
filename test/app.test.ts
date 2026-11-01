@@ -8,7 +8,7 @@ import { NullPublisher } from '../src/events.ts';
 import { MemoryStore } from '../src/store.ts';
 import { verifyAccess } from '../src/tokens.ts';
 
-const cfg = loadConfig({ JWT_SECRET: 'test-secret' } as NodeJS.ProcessEnv);
+const cfg = loadConfig({ JWT_SIGNING_KEY: 'test-secret' } as NodeJS.ProcessEnv);
 const store = new MemoryStore();
 const events = new NullPublisher();
 let server: Server;
