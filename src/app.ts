@@ -8,7 +8,7 @@ import { type AccessClaims, hashToken, newOpaqueToken, signAccess, verifyAccess 
 const ROLES: Role[] = ['customer', 'staff', 'admin'];
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-const publicUser = (u: UserRow) => ({ id: u.id, email: u.email, fullName: u.full_name, role: u.role });
+const publicUser = (u: UserRow) => ({ id: u.id, email: u.email, fullName: u.full_name, role: u.role, createdAt: u.created_at.toISOString() });
 
 export interface Deps {
   cfg: Config;

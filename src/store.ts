@@ -10,6 +10,7 @@ export interface UserRow {
   password_hash: string;
   role: Role;
   tenant: string;
+  created_at: Date;
 }
 
 export interface TokenRow {
@@ -92,7 +93,7 @@ export class MemoryStore implements Store {
 
   async createUser(u: { email: string; fullName: string; passwordHash: string; role?: Role; tenant?: string }) {
     if (this.users.some((x) => x.email === u.email)) return null;
-    const row: UserRow = { id: randomUUID(), email: u.email, full_name: u.fullName, password_hash: u.passwordHash, role: u.role ?? 'customer', tenant: u.tenant ?? 'default' };
+    const row: UserRow = { id: randomUUID(), email: u.email, full_name: u.fullName, password_hash: u.passwordHash, role: u.role ?? 'customer', tenant: u.tenant ?? 'default', created_at: new Date() };
     this.users.push(row);
     return { ...row };
   }
