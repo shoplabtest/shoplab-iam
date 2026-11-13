@@ -12,6 +12,16 @@ export interface UserRow {
   tenant: string;
 }
 
+/** `id` is only for seeds and tests that need a known id; normally the database or MemoryStore generates it. */
+export interface NewUser {
+  email: string;
+  fullName: string;
+  passwordHash: string;
+  role?: Role;
+  tenant?: string;
+  id?: string;
+}
+
 export interface TokenRow {
   user_id: string;
   expires_at: Date;
@@ -19,7 +29,7 @@ export interface TokenRow {
 }
 
 export interface Store {
-  createUser(u: { email: string; fullName: string; passwordHash: string; role?: Role; tenant?: string }): Promise<UserRow | null>;
+  createUser(u: NewUser): Promise<UserRow | null>;
   findByEmail(email: string): Promise<UserRow | null>;
   findById(id: string): Promise<UserRow | null>;
   setRole(id: string, role: Role): Promise<UserRow | null>;
@@ -36,12 +46,12 @@ export interface Store {
 export class PgStore implements Store {
   constructor(private pool: Pool) {}
 
-  async createUser(u: { email: string; fullName: string; passwordHash: string; role?: Role; tenant?: string }) {
+  async createUser(u: NewUser) {
     const r = await this.pool.query<UserRow>(
-      `INSERT INTO users (email, full_name, password_hash, role, tenant)
-       VALUES ($1, $2, $3, COALESCE($4, 'customer'), COALESCE($5, 'default'))
-       ON CONFLICT (email) DO NOTHING RETURNING *`,
-      [u.email, u.fullName, u.passwordHash, u.role ?? null, u.tenant ?? null],
+      `INSERT INTO users (id, email, full_name, password_hash, role, tenant)
+       VALUES (COALESCE($6::uuid, gen_random_uuid()), $1, $2, $3, COALESCE($4, 'customer'), COALESCE($5, 'default'))
+       ON CONFLICT DO NOTHING RETURNING *`,
+      [u.email, u.fullName, u.passwordHash, u.role ?? null, u.tenant ?? null, u.id ?? null],
     );
     return r.rows[0] ?? null;
   }
@@ -90,9 +100,9 @@ export class MemoryStore implements Store {
   refresh = new Map<string, TokenRow>();
   resets = new Map<string, { user_id: string; expires_at: Date; used: boolean }>();
 
-  async createUser(u: { email: string; fullName: string; passwordHash: string; role?: Role; tenant?: string }) {
-    if (this.users.some((x) => x.email === u.email)) return null;
-    const row: UserRow = { id: randomUUID(), email: u.email, full_name: u.fullName, password_hash: u.passwordHash, role: u.role ?? 'customer', tenant: u.tenant ?? 'default' };
+  async createUser(u: NewUser) {
+    if (this.users.some((x) => x.email === u.email || x.id === u.id)) return null;
+    const row: UserRow = { id: u.id ?? randomUUID(), email: u.email, full_name: u.fullName, password_hash: u.passwordHash, role: u.role ?? 'customer', tenant: u.tenant ?? 'default' };
     this.users.push(row);
     return { ...row };
   }
