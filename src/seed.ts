@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
@@ -21,13 +22,22 @@ const LAST = ['Nguyen', 'Okafor', 'Silva', 'Kim', 'Rossi', 'Haddad', 'Novak', 'T
 
 export const SEED_PASSWORD = 'password123';
 
+/**
+ * Stable id for the i-th seed user. The orders, payments, invoices and notifications seeds derive the same ids,
+ * so a seeded shopper is the same person in every service. Seed a fresh database: users that already exist keep their ids.
+ */
+export const seedUserId = (i: number) => {
+  const h = createHash('sha1').update(`shoplab-seed-user-${i}`).digest('hex');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
+};
+
 export function seedUsers(count = 50, seed = 42) {
   const rnd = mulberry32(seed);
   return Array.from({ length: count }, (_, i) => {
     const first = FIRST[Math.floor(rnd() * FIRST.length)];
     const last = LAST[Math.floor(rnd() * LAST.length)];
     const role: Role = i === 0 ? 'admin' : i < 4 ? 'staff' : 'customer';
-    return { email: `${first}.${last}.${i}@shoplab.test`.toLowerCase(), fullName: `${first} ${last}`, role };
+    return { id: seedUserId(i), email: `${first}.${last}.${i}@shoplab.test`.toLowerCase(), fullName: `${first} ${last}`, role };
   });
 }
 

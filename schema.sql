@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict WdtPvoo3GvQ28uboq4C1bE1DTrieaCzGNQloTgpn97zaGkbAQWdWCreyHFoFYcL
+\restrict UCBobAlWxvFrUUelhZLipBuq9OqiX66Fvvti8fRwZf210DV7Fodgfmr9benIzQ7
 
 -- Dumped from database version 16.15
 -- Dumped by pg_dump version 16.15
@@ -18,9 +18,53 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON SCHEMA public IS '';
+
+
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: accounts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.accounts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    email text NOT NULL,
+    full_name text NOT NULL,
+    password_hash text NOT NULL,
+    role text DEFAULT 'customer'::text NOT NULL,
+    tenant text DEFAULT 'default'::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT users_role_check CHECK ((role = ANY (ARRAY['customer'::text, 'staff'::text, 'admin'::text])))
+);
+
 
 --
 -- Name: password_resets; Type: TABLE; Schema: public; Owner: -
@@ -49,18 +93,12 @@ CREATE TABLE public.refresh_tokens (
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: -
+-- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.users (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    email text NOT NULL,
-    full_name text NOT NULL,
-    password_hash text NOT NULL,
-    role text DEFAULT 'customer'::text NOT NULL,
-    tenant text DEFAULT 'default'::text NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT users_role_check CHECK ((role = ANY (ARRAY['customer'::text, 'staff'::text, 'admin'::text])))
+CREATE TABLE public.schema_migrations (
+    name text NOT NULL,
+    applied_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -97,18 +135,26 @@ ALTER TABLE ONLY public.refresh_tokens
 
 
 --
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.users
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (name);
+
+
+--
+-- Name: accounts users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
     ADD CONSTRAINT users_email_key UNIQUE (email);
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: accounts users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.users
+ALTER TABLE ONLY public.accounts
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 
@@ -124,7 +170,7 @@ CREATE INDEX refresh_tokens_user_id_idx ON public.refresh_tokens USING btree (us
 --
 
 ALTER TABLE ONLY public.password_resets
-    ADD CONSTRAINT password_resets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT password_resets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.accounts(id) ON DELETE CASCADE;
 
 
 --
@@ -132,12 +178,12 @@ ALTER TABLE ONLY public.password_resets
 --
 
 ALTER TABLE ONLY public.refresh_tokens
-    ADD CONSTRAINT refresh_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT refresh_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.accounts(id) ON DELETE CASCADE;
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict WdtPvoo3GvQ28uboq4C1bE1DTrieaCzGNQloTgpn97zaGkbAQWdWCreyHFoFYcL
+\unrestrict UCBobAlWxvFrUUelhZLipBuq9OqiX66Fvvti8fRwZf210DV7Fodgfmr9benIzQ7
 
