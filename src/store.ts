@@ -48,7 +48,7 @@ export class PgStore implements Store {
 
   async createUser(u: NewUser) {
     const r = await this.pool.query<UserRow>(
-      `INSERT INTO users (id, email, full_name, password_hash, role, tenant)
+      `INSERT INTO accounts (id, email, full_name, password_hash, role, tenant)
        VALUES (COALESCE($6::uuid, gen_random_uuid()), $1, $2, $3, COALESCE($4, 'customer'), COALESCE($5, 'default'))
        ON CONFLICT DO NOTHING RETURNING *`,
       [u.email, u.fullName, u.passwordHash, u.role ?? null, u.tenant ?? null, u.id ?? null],
@@ -56,19 +56,19 @@ export class PgStore implements Store {
     return r.rows[0] ?? null;
   }
   async findByEmail(email: string) {
-    return (await this.pool.query<UserRow>('SELECT * FROM users WHERE email = $1', [email])).rows[0] ?? null;
+    return (await this.pool.query<UserRow>('SELECT * FROM accounts WHERE email = $1', [email])).rows[0] ?? null;
   }
   async findById(id: string) {
-    return (await this.pool.query<UserRow>('SELECT * FROM users WHERE id = $1', [id])).rows[0] ?? null;
+    return (await this.pool.query<UserRow>('SELECT * FROM accounts WHERE id = $1', [id])).rows[0] ?? null;
   }
   async setRole(id: string, role: Role) {
-    return (await this.pool.query<UserRow>('UPDATE users SET role = $2 WHERE id = $1 RETURNING *', [id, role])).rows[0] ?? null;
+    return (await this.pool.query<UserRow>('UPDATE accounts SET role = $2 WHERE id = $1 RETURNING *', [id, role])).rows[0] ?? null;
   }
   async setFullName(id: string, fullName: string) {
-    return (await this.pool.query<UserRow>('UPDATE users SET full_name = $2 WHERE id = $1 RETURNING *', [id, fullName])).rows[0] ?? null;
+    return (await this.pool.query<UserRow>('UPDATE accounts SET full_name = $2 WHERE id = $1 RETURNING *', [id, fullName])).rows[0] ?? null;
   }
   async setPassword(id: string, passwordHash: string) {
-    await this.pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [id, passwordHash]);
+    await this.pool.query('UPDATE accounts SET password_hash = $2 WHERE id = $1', [id, passwordHash]);
   }
   async saveRefresh(userId: string, tokenHash: string, expiresAt: Date) {
     await this.pool.query('INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)', [userId, tokenHash, expiresAt]);

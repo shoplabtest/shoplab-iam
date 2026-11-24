@@ -16,4 +16,4 @@ Env: `DATABASE_URL`, `JWT_SECRET`, `RABBITMQ_URL` (optional), `PORT`, `ACCESS_TO
 
 `npm test` runs against an in-memory store; set `TEST_DATABASE_URL` to also run the migration test on an empty Postgres.
 `npm run seed` creates the same 50 users every time (password `password123`), with stable ids (`seedUserId(i)`, the same ids the orders, payments, invoices and notifications seeds use). Seed a fresh database: users that already exist keep the ids they have.
-`schema.sql` is a snapshot of the migrated schema. Other services read `users.email` and `users.full_name`.
+`schema.sql` is a snapshot of the migrated schema. The user table is `accounts` (renamed from `users` in migration 004).
